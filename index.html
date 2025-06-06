@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pipe Designing Tool</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #eef2f5;
+      padding: 40px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    .top-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .top-inputs label {
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .top-inputs input {
+      width: 120px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .top-inputs input[readonly] {
+      background-color: #f0f0f0;
+      color: #555;
+    }
+
+    .unit-selector {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .unit-selector label {
+      font-weight: 500;
+      margin-right: 10px;
+    }
+
+    select {
+      padding: 6px;
+      border-radius: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+      text-transform: uppercase;
+    }
+
+    input[type="number"] {
+      padding: 6px;
+      width: 100px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .length-cell {
+      font-weight: bold;
+      color: #2980b9;
+    }
+
+    .add-btn {
+      margin-top: 20px;
+      background: #2ecc71;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+
+    .add-btn:hover {
+      background: #27ae60;
+    }
+    .top-inputs-vertical > div {
+    margin-bottom: 20px;
+  }
+
+  .top-inputs-vertical label {
+    font-weight: 600;
+  }
+
+  .top-inputs-vertical input {
+    width: 100%;
+    max-width: 250px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    margin-top: 4px;
+  }
+
+  .top-inputs-vertical input[readonly] {
+    background-color: #f0f0f0;
+    color: #555;
+  }
+
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Pipe Designing Tool</h1>
+  <div class="top-inputs-vertical">
+    <div>
+      <label for="mvlInput">Maximum Valve Level:</label>
+      <input type="number" id="mvlInput" placeholder="Enter MVL" />
+    </div>
+    <div>
+      <label for="fvlInput">Foot Valve Level:</label>
+      <input type="number" id="fvlInput" placeholder="Enter FVL" />
+    </div>
+    <div>
+      <label for="slInput">Static Level:</label>
+      <input type="number" id="slInput" readonly placeholder="FVL - MVL" />
+    </div>
+</div>
+  <div class="unit-selector">
+    <label for="unit">Unit:</label>
+    <select id="unit" onchange="updateUnitLabels()">
+      <option value="m">Metre</option>
+      <option value="km">Kilometre</option>
+      <option value="mm">Millimetre</option>
+    </select>
+  </div>
+
+  <button class="add-btn" onclick="addRow()">+ Add Distance Row</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>FROM (<span id="fromUnit">m</span>)</th>
+        <th>TO (<span id="toUnit">m</span>)</th>
+        <th>LENGTH (<span id="lengthUnit">m</span>)</th>
+        <th>X</th>
+        <th>Y</th>
+        <th>Z</th>
+        <th>A</th>
+        <th>B</th>
+        <th>C</th>
+        <th>D</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <!-- Dynamic rows go here -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const conversionFactors = {
+    m: 1,
+    km: 0.001,
+    mm: 1000
+  };
+
+  let currentUnit = 'm';
+  let rowCount = 0;
+
+  const mvlInput = document.getElementById("mvlInput");
+  const fvlInput = document.getElementById("fvlInput");
+  const slInput = document.getElementById("slInput");
+
+  function updateStaticLevel() {
+    const mvlVal = parseFloat(mvlInput.value);
+    const fvlVal = parseFloat(fvlInput.value);
+
+    if (!isNaN(mvlVal) && !isNaN(fvlVal)) {
+      const slVal =mvlVal-fvlVal;
+      slInput.value = slVal.toFixed(3);
+    } else {
+      slInput.value = "";
+    }
+  }
+
+  mvlInput.addEventListener("input", updateStaticLevel);
+  fvlInput.addEventListener("input", updateStaticLevel);
+
+  function updateUnitLabels() {
+    currentUnit = document.getElementById("unit").value;
+    document.getElementById("fromUnit").innerText = currentUnit;
+    document.getElementById("toUnit").innerText = currentUnit;
+    document.getElementById("lengthUnit").innerText = currentUnit;
+    updateAllRows();
+  }
+
+  function addRow() {
+    rowCount++;
+    const tableBody = document.getElementById("tableBody");
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${rowCount}</td>
+      <td><input type="number" class="from-input" placeholder="FROM"></td>
+      <td><input type="number" class="to-input" placeholder="TO"></td>
+      <td class="length-cell">—</td>
+      <td class="x-cell">—</td>
+      <td class="y-cell">—</td>
+      <td class="z-cell">—</td>
+      <td class="a-cell">—</td>
+      <td class="b-cell">—</td>
+      <td class="c-cell">—</td>
+      <td class="d-cell">—</td>
+    `;
+
+    tableBody.appendChild(row);
+
+    const fromInput = row.querySelector(".from-input");
+    const toInput = row.querySelector(".to-input");
+
+    fromInput.addEventListener("input", () => updateRow(row));
+    toInput.addEventListener("input", () => updateRow(row));
+  }
+
+  function updateRow(row) {
+    const fromInput = row.querySelector(".from-input");
+    const toInput = row.querySelector(".to-input");
+
+    const fromVal = parseFloat(fromInput.value);
+    const toVal = parseFloat(toInput.value);
+
+    const lengthCell = row.querySelector(".length-cell");
+    const xCell = row.querySelector(".x-cell");
+    const yCell = row.querySelector(".y-cell");
+    const zCell = row.querySelector(".z-cell");
+    const aCell = row.querySelector(".a-cell");
+    const bCell = row.querySelector(".b-cell");
+    const cCell = row.querySelector(".c-cell");
+    const dCell = row.querySelector(".d-cell");
+
+    if (!isNaN(fromVal) && !isNaN(toVal)) {
+      const diffMeters = Math.abs(toVal - fromVal);
+      const converted = diffMeters * conversionFactors[currentUnit];
+
+      lengthCell.innerText = converted.toFixed(3);
+      xCell.innerText = (converted * 1.1).toFixed(2);
+      yCell.innerText = (converted * 0.9).toFixed(2);
+      zCell.innerText = (converted + 5).toFixed(2);
+      aCell.innerText = (converted - 2).toFixed(2);
+      bCell.innerText = (converted / 2).toFixed(2);
+      cCell.innerText = (converted * 3).toFixed(2);
+      dCell.innerText = (Math.sqrt(converted)).toFixed(2);
+    } else {
+      lengthCell.innerText = xCell.innerText = yCell.innerText = zCell.innerText =
+      aCell.innerText = bCell.innerText = cCell.innerText = dCell.innerText = "—";
+    }
+  }
+
+  function updateAllRows() {
+    const rows = document.querySelectorAll("#tableBody tr");
+    rows.forEach(updateRow);
+  }
+
+  updateUnitLabels(); // Initial setup
+</script>
+
+</body>
+</html>
