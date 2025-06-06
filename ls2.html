@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pipe Designing Tool</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #eef2f5;
+      padding: 40px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    .unit-selector {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .unit-selector label {
+      font-weight: 500;
+      margin-right: 10px;
+    }
+
+    select {
+      padding: 6px;
+      border-radius: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+      text-transform: uppercase;
+    }
+
+    input[type="number"] {
+      padding: 6px;
+      width: 100px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .length-cell {
+      font-weight: bold;
+      color: #2980b9;
+    }
+
+    .add-btn {
+      margin-top: 20px;
+      background: #2ecc71;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+
+    .add-btn:hover {
+      background: #27ae60;
+    }
+
+    .calc-btn {
+      padding: 6px 12px;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .calc-btn:hover {
+      background: #2471a3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Pipe Designing Tool</h1>
+
+    <div class="unit-selector">
+      <label for="unit">Unit:</label>
+      <select id="unit" onchange="updateUnitLabels()">
+        <option value="m">Metre</option>
+        <option value="km">Kilometre</option>
+        <option value="mm">Millimetre</option>
+      </select>
+    </div>
+
+    <button class="add-btn" onclick="addRow()">+ Add Distance Row</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>FROM (<span id="fromUnit">m</span>)</th>
+          <th>TO (<span id="toUnit">m</span>)</th>
+          <th>LENGTH (<span id="lengthUnit">m</span>)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- Dynamic rows go here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const conversionFactors = {
+      m: 1,
+      km: 0.001,
+      mm: 1000
+    };
+
+    let currentUnit = 'm';
+    let rowCount = 0;
+
+    function updateUnitLabels() {
+      currentUnit = document.getElementById("unit").value;
+      document.getElementById("fromUnit").innerText = currentUnit;
+      document.getElementById("toUnit").innerText = currentUnit;
+      document.getElementById("lengthUnit").innerText = currentUnit;
+    }
+
+    function addRow() {
+      rowCount++;
+
+      const tableBody = document.getElementById("tableBody");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${rowCount}</td>
+        <td><input type="number" class="from-input" placeholder="FROM"></td>
+        <td><input type="number" class="to-input" placeholder="TO"></td>
+        <td class="length-cell">—</td>
+        <td><button class="calc-btn" onclick="calculateRowLength(this)">Calculate</button></td>
+      `;
+
+      tableBody.appendChild(row);
+    }
+
+    function calculateRowLength(button) {
+      const row = button.closest("tr");
+      const fromInput = row.querySelector(".from-input");
+      const toInput = row.querySelector(".to-input");
+      const lengthCell = row.querySelector(".length-cell");
+
+      const fromVal = parseFloat(fromInput.value);
+      const toVal = parseFloat(toInput.value);
+
+      if (isNaN(fromVal) || isNaN(toVal)) {
+        alert("Please enter valid FROM and TO values.");
+        return;
+      }
+      const diffMeters = Math.abs(toVal - fromVal);
+      const converted = diffMeters * conversionFactors[currentUnit];
+      lengthCell.innerText = converted.toFixed(3);
+    }
+    // Initialize unit labels
+    updateUnitLabels();
+  </script>
+
+</body>
+</html>
